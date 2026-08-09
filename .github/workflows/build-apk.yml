@@ -1,5 +1,42 @@
-- name: Download project
+name: Build naruzhu APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  export-android:
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.7.1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download project
         run: |
           curl -L -o project.zip https://github.com/ermolovartem76-art/Hjjjk/releases/download/Ggg/naruzhu_app_updated-3.zip
           mkdir -p project
           unzip -o project.zip -d project
+
+      - name: Setup export templates
+        run: |
+          mkdir -v -p ~/.local/share/godot/export_templates
+          mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+
+      - name: Import project
+        run: |
+          cd project
+          godot --headless --editor --quit || true
+
+      - name: Export Android APK (debug)
+        run: |
+          cd project
+          mkdir -p build
+          godot --headless --export-debug "Android" build/naruzhu.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: naruzhu-apk
+          path: project/build/naruzhu.apk
