@@ -16,7 +16,7 @@ jobs:
 
       - name: Download project
         run: |
-          curl -L -o project.zip https://github.com/ermolovartem76-art/Hjjjk/releases/download/Ggg/naruzhu_app_updated-3.zip
+          wget -O project.zip https://github.com/ermolovartem76-art/Hjjjk/releases/download/Ggg/naruzhu_app_updated-3.zip
           mkdir -p project
           unzip -o project.zip -d project
 
