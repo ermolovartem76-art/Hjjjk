@@ -6,37 +6,34 @@ on:
   workflow_dispatch:
 
 jobs:
-  export-android:
+  export:
     runs-on: ubuntu-latest
-    container:
-      image: barichello/godot-ci:4.7.1
-
     steps:
-      - uses: actions/checkout@v4
+      - name: checkout
+        uses: actions/checkout@v4
 
       - name: Download project
         run: |
           wget -O project.zip https://github.com/ermolovartem76-art/Hjjjk/releases/download/Ggg/naruzhu_app_updated-3.zip
-          mkdir -p project
-          unzip -o project.zip -d project
+          mkdir -p godot_project
+          unzip -o project.zip -d godot_project
 
-      - name: Setup export templates
-        run: |
-          mkdir -v -p ~/.local/share/godot/export_templates
-          mv /root/.local/share/godot/export_templates/4.7.1.stable ~/.local/share/godot/export_templates/4.7.1.stable
+      - name: Setup android
+        uses: android-actions/setup-android@v3
 
-      - name: Import project
-        run: |
-          cd project/naruzhu_app_updated-3/naruzhu_app_updated/naruzhu_app
-          godot --headless --editor --quit || true
+      - name: export game
+        id: export
+        uses: firebelley/godot-export@v6.0.0
+        with:
+          godot_executable_download_url: https://downloads.tuxfamily.org/godotengine/4.7.1/Godot_v4.7.1-stable_linux.x86_64.zip
+          godot_export_templates_download_url: https://downloads.tuxfamily.org/godotengine/4.7.1/Godot_v4.7.1-stable_export_templates.tpz
+          relative_project_path: ./godot_project/naruzhu_app_updated-3/naruzhu_app_updated/naruzhu_app
+          archive_output: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Export Android APK (debug)
-        run: |
-          cd project/naruzhu_app_updated-3/naruzhu_app_updated/naruzhu_app
-          mkdir -p build
-          godot --headless --export-debug "Android" build/naruzhu.apk
-
-      - uses: actions/upload-artifact@v4
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
           name: naruzhu-apk
-          path: project/naruzhu_app_updated-3/naruzhu_app_updated/naruzhu_app/build/naruzhu.apk
+          path: ${{ steps.export.outputs.build_directory }}
